@@ -1,0 +1,1 @@
+{"version":3,"file":"IRequestHandler.d.ts","sourceRoot":"","sources":["../../../../lib/CQRS/Request/IRequestHandler.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAEtC,MAAM,WAAW,eAAe,CAAC,CAAC,SAAS,QAAQ,EAAE,IAAI,GAAG,GAAG;IAC7D,OAAO,CAAC,KAAK,EAAE,CAAC,GAAG,OAAO,CAAC,IAAI,CAAC,CAAC;CAClC"}

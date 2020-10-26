@@ -3,12 +3,13 @@ import AWS, { SNS, SQS } from "aws-sdk";
 import { Consumer } from "sqs-consumer";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import { IntegrationEventBus } from "../../IntegrationEventBus";
-import { IntegrationEventModuleOptionsIoCAnchor } from "../../IntegrationEventModuleOptions";
+import { EventBus_Usage, IntegrationEventModuleOptionsIoCAnchor } from "../../IntegrationEventModuleOptions";
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { SNSHelper } from "./SNSHelper";
 import { SQSHelper } from "./SQSHelper";
 
 export interface AWSIntegrationEventBusOptions {
+  usage?: EventBus_Usage;
   SNS: {
     arn: string;
     region: string;
@@ -48,6 +49,11 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     @Inject(IntegrationEventModuleOptionsIoCAnchor) options: AWSIntegrationEventBusOptions,
     private readonly subscriptionManager: IntegrationEventSubscriptionManager
   ) {
+    let enableConsumer = true;
+    if (options.usage === EventBus_Usage.ProducerOnly) {
+      enableConsumer = false;
+    }
+
     AWS.config.update({
       region: options.SNS.region,
       accessKeyId: options.SNS.accessKeyId,
@@ -64,11 +70,13 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     this.SQSUrl = options.SQS.url;
     this.SQSClient = new AWS.SQS();
 
-    this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
-      SQSUrl: this.SQSUrl,
-      SQSClient: this.SQSClient,
-      getSubscriptions: () => this.subscriptionManager.getSubscriptions(),
-    });
+    if (enableConsumer) {
+      this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
+        SQSUrl: this.SQSUrl,
+        SQSClient: this.SQSClient,
+        getSubscriptions: () => this.subscriptionManager.getSubscriptions(),
+      });
+    }
   }
 
   private readonly SNSArn: string;
@@ -76,16 +84,18 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
 
   private readonly SQSUrl: string;
   private readonly SQSClient: SQS;
-  private readonly SQSConsumer: Consumer;
+  private readonly SQSConsumer?: Consumer;
 
   private dispose(): Promise<void> {
     return new Promise<void>(resolve => {
-      this.SQSConsumer.on("stopped", () => {
-        console.log(`AWS Integration Event Bus Disposed`);
-        resolve();
-      });
+      if (this.SQSConsumer) {
+        this.SQSConsumer.on("stopped", () => {
+          console.log(`AWS Integration Event Bus Disposed`);
+          resolve();
+        });
 
-      this.SQSConsumer.stop();
+        this.SQSConsumer.stop();
+      }
     });
   }
 }

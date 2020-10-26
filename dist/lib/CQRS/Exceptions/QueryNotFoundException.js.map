@@ -1,0 +1,1 @@
+{"version":3,"file":"QueryNotFoundException.js","sourceRoot":"","sources":["../../../../lib/CQRS/Exceptions/QueryNotFoundException.ts"],"names":[],"mappings":";;AAAA,MAAa,6BAA6B;IACxC,YAA4B,UAAU,mCAAmC;QAA7C,YAAO,GAAP,OAAO,CAAsC;IAAG,CAAC;CAC9E;AAFD,sEAEC"}

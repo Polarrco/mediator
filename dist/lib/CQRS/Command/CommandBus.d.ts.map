@@ -1,0 +1,1 @@
+{"version":3,"file":"CommandBus.d.ts","sourceRoot":"","sources":["../../../../lib/CQRS/Command/CommandBus.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AACzC,OAAO,EAAE,UAAU,EAAE,MAAM,uBAAuB,CAAC;AAEnD,qBAAa,UAAW,SAAQ,UAAU;gBAC5B,SAAS,EAAE,SAAS;CAGjC"}

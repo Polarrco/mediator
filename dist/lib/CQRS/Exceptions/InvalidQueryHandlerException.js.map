@@ -1,0 +1,1 @@
+{"version":3,"file":"InvalidQueryHandlerException.js","sourceRoot":"","sources":["../../../../lib/CQRS/Exceptions/InvalidQueryHandlerException.ts"],"names":[],"mappings":";;AAAA,MAAa,4BAA6B,SAAQ,KAAK;IACrD;QACE,KAAK,CAAC,sEAAsE,CAAC,CAAC;IAChF,CAAC;CACF;AAJD,oEAIC"}

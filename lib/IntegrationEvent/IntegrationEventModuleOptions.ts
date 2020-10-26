@@ -1,15 +1,12 @@
 import { AWSIntegrationEventBusOptions } from "./Implementation/AWS-SNS-SQS/AWSBus";
 
+export enum EventBus_Usage {
+  ProducerOnly = "ProducerOnly",
+  All = "All",
+}
+
 interface OptionsForAWS extends AWSIntegrationEventBusOptions {
   type: "AWS-SNS-SQS";
-}
-
-interface OptionsForRabbitMQ {
-  type: "RabbitMQ";
-}
-
-interface OptionsForRocketMQ {
-  type: "RocketMQ";
 }
 
 interface OptionsForInMemory {
@@ -18,8 +15,6 @@ interface OptionsForInMemory {
 
 export type IntegrationEventModuleOptions =
   | OptionsForAWS
-  | OptionsForInMemory
-  | OptionsForRocketMQ
-  | OptionsForRabbitMQ;
+  | OptionsForInMemory;
 
 export const IntegrationEventModuleOptionsIoCAnchor = Symbol("IntegrationEventModuleOptionsIoCAnchor");

@@ -26,10 +26,8 @@ export class IntegrationEventModule {
       case "InMemory":
         implementationConstructor = InMemoryBus;
         break;
-      case "RocketMQ":
-        throw new Error(`Not implemented.`);
       default:
-        throw new Error(`Get invalid integration event bus type: ${options.type}.`);
+        throw new Error(`Got invalid integration event bus type.`);
     }
 
     const integrationEventBusProvider: Provider = {
