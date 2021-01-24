@@ -1,12 +1,15 @@
 import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
 import AWS, { SNS, SQS } from "aws-sdk";
 import { Consumer } from "sqs-consumer";
+import { createNodeRedisClient, WrappedNodeRedisClient } from "handy-redis";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import { IntegrationEventBus } from "../../IntegrationEventBus";
 import { EventBus_Usage, IntegrationEventModuleOptionsIoCAnchor } from "../../IntegrationEventModuleOptions";
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { SNSHelper } from "./SNSHelper";
 import { SQSHelper } from "./SQSHelper";
+import { RedisHelper } from "./RedisHelper";
+import { getConstructorName } from "../../../Helper/getConstructorName";
 
 export interface AWSIntegrationEventBusOptions {
   usage?: EventBus_Usage;
@@ -22,6 +25,9 @@ export interface AWSIntegrationEventBusOptions {
     accessKeyId: string;
     secretAccessKey: string;
   };
+  Redis?: {
+    url: string;
+  };
 }
 
 /**
@@ -34,6 +40,13 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
   }
 
   async publish(event: IntegrationEvent): Promise<void> {
+    event.eventName = getConstructorName(event);
+    if (this.RedisClient) {
+      await RedisHelper.storeEventData({
+        event: event,
+        RedisClient: this.RedisClient,
+      });
+    }
     await SNSHelper.publishEvent({
       event: event,
       SNSArn: this.SNSArn,
@@ -70,11 +83,17 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     this.SQSUrl = options.SQS.url;
     this.SQSClient = new AWS.SQS();
 
+    this.RedisUrl = options.Redis?.url;
+    if (this.RedisUrl) {
+      this.RedisClient = createNodeRedisClient(this.RedisUrl);
+    }
+
     if (enableConsumer) {
       this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
         SQSUrl: this.SQSUrl,
         SQSClient: this.SQSClient,
         getSubscriptions: () => this.subscriptionManager.getSubscriptions(),
+        RedisClient: this.RedisClient,
       });
     }
   }
@@ -85,6 +104,9 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
   private readonly SQSUrl: string;
   private readonly SQSClient: SQS;
   private readonly SQSConsumer?: Consumer;
+
+  private readonly RedisUrl?: string;
+  private readonly RedisClient?: WrappedNodeRedisClient;
 
   private dispose(): Promise<void> {
     return new Promise<void>(resolve => {
