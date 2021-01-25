@@ -6,7 +6,7 @@ export class RedisHelper {
     event: IntegrationEvent;
     RedisClient: WrappedNodeRedisClient;
   }): Promise<void> {
-    if (options.event && options.event.queueId) {
+    if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
       try {
         const hashKey = `{${options.event.queueId}}_data`;
         const sortedSetKey = `{${options.event.queueId}}_queue`;
@@ -29,7 +29,7 @@ export class RedisHelper {
     event: IntegrationEvent;
     RedisClient: WrappedNodeRedisClient;
   }): Promise<boolean> {
-    if (options.RedisClient && options.event && options.event.queueId) {
+    if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
       const activeSetKey = `{${options.event.queueId}}_active`;
       const activeEventKey = `{${options.event.queueId}}_${options.event.integrationEventId}_active`;
       const keysExist = await options.RedisClient.exists(activeEventKey, activeSetKey);
@@ -44,7 +44,7 @@ export class RedisHelper {
     queueId: string;
     RedisClient: WrappedNodeRedisClient;
   }): Promise<string | undefined> {
-    if (options.RedisClient && options.queueId) {
+    if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.queueId) {
       const activeSetKey = `{${options.queueId}}_active`;
       const hashKey = `{${options.queueId}}_data`;
       const sortedSetKey = `{${options.queueId}}_queue`;

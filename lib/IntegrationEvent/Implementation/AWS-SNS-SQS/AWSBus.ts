@@ -86,6 +86,9 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     this.RedisUrl = options.Redis?.url;
     if (this.RedisUrl) {
       this.RedisClient = createNodeRedisClient(this.RedisUrl);
+      this.RedisClient.nodeRedis.on("error", error => {
+        console.log(error);
+      });
     }
 
     if (enableConsumer) {
