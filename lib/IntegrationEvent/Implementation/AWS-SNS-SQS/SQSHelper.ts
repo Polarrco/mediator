@@ -113,14 +113,16 @@ export class SQSHelper {
       if (RedisClient) {
         const canExecute = await RedisHelper.canStartEventExecution({ event: eventData, RedisClient: RedisClient });
         if (canExecute && eventData.queueId) {
+          let eventName: string;
+          let eventDataParsed: any;
           let eventDataString = await RedisHelper.fetchNextEvent({
             queueId: eventData.queueId,
             RedisClient: RedisClient,
           });
           while (eventDataString) {
-            const eventDataParsed = JSON.parse(eventDataString, SQSHelper.jsonDateReviver);
-            const eventName = eventDataParsed.name;
-            eventData = SQSHelper.getEventData(subscriptionNameMap, eventName, eventData);
+            eventDataParsed = JSON.parse(eventDataString, SQSHelper.jsonDateReviver);
+            eventName = eventDataParsed.eventName;
+            eventData = eventDataParsed;
             if (eventData && eventData.queueId) {
               await SQSHelper.executeEventHandlers(subscriptionNameMap, eventName, eventData);
               eventDataString = await RedisHelper.fetchNextEvent({
