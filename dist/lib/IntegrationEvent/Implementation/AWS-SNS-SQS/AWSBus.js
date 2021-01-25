@@ -17,12 +17,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
+const handy_redis_1 = require("handy-redis");
 const IntegrationEventModuleOptions_1 = require("../../IntegrationEventModuleOptions");
 const IntegrationEventSubscriptionManager_1 = require("../../IntegrationEventSubscriptionManager");
 const SNSHelper_1 = require("./SNSHelper");
 const SQSHelper_1 = require("./SQSHelper");
+const RedisHelper_1 = require("./RedisHelper");
+const getConstructorName_1 = require("../../../Helper/getConstructorName");
 let AWSBus = class AWSBus {
     constructor(options, subscriptionManager) {
+        var _a;
         this.subscriptionManager = subscriptionManager;
         let enableConsumer = true;
         if (options.usage === IntegrationEventModuleOptions_1.EventBus_Usage.ProducerOnly) {
@@ -42,11 +46,16 @@ let AWSBus = class AWSBus {
         });
         this.SQSUrl = options.SQS.url;
         this.SQSClient = new aws_sdk_1.default.SQS();
+        this.RedisUrl = (_a = options.Redis) === null || _a === void 0 ? void 0 : _a.url;
+        if (this.RedisUrl) {
+            this.RedisClient = handy_redis_1.createNodeRedisClient(this.RedisUrl);
+        }
         if (enableConsumer) {
             this.SQSConsumer = SQSHelper_1.SQSHelper.bundleQueueWithSubscriptions({
                 SQSUrl: this.SQSUrl,
                 SQSClient: this.SQSClient,
                 getSubscriptions: () => this.subscriptionManager.getSubscriptions(),
+                RedisClient: this.RedisClient,
             });
         }
     }
@@ -54,6 +63,13 @@ let AWSBus = class AWSBus {
         return this.subscriptionManager;
     }
     async publish(event) {
+        event.eventName = getConstructorName_1.getConstructorName(event);
+        if (this.RedisClient) {
+            await RedisHelper_1.RedisHelper.storeEventData({
+                event: event,
+                RedisClient: this.RedisClient,
+            });
+        }
         await SNSHelper_1.SNSHelper.publishEvent({
             event: event,
             SNSArn: this.SNSArn,

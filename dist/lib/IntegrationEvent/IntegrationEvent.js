@@ -5,6 +5,7 @@ class IntegrationEvent {
     constructor(options = {}) {
         this.integrationEventId = options.integrationEventId || new ruid_1.Ruid().toString();
         this.integrationEventCreationDate = options.integrationEventCreationDate || new Date();
+        this.queueId = options.queueId;
     }
 }
 exports.IntegrationEvent = IntegrationEvent;

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const date_fns_1 = require("date-fns");
 const sqs_consumer_1 = require("sqs-consumer");
+const RedisHelper_1 = require("./RedisHelper");
 class SQSHelper {
     static bundleQueueWithSubscriptions(options) {
         const consumer = sqs_consumer_1.Consumer.create({
@@ -23,20 +24,7 @@ class SQSHelper {
                         throw error;
                     }
                     const subscriptions = options.getSubscriptions();
-                    const subscription = [...subscriptions.entries()].find(([eventConstructor]) => eventConstructor.name === parsedBody.EventName);
-                    if (!subscription) {
-                        throw new Error(`There is no subscription respecting to this event: ${parsedBody.EventName}.`);
-                    }
-                    const [eventConstructor, eventHandlers] = subscription;
-                    if (!eventConstructor || !eventHandlers || eventHandlers.length === 0) {
-                        throw new Error(`There is no event handler respecting to this event: ${parsedBody.EventName}.`);
-                    }
-                    else {
-                        const event = new eventConstructor(parsedBody.EventBody);
-                        for (const handler of eventHandlers) {
-                            await handler.handle(event);
-                        }
-                    }
+                    await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
                 }
             },
         });
@@ -51,6 +39,67 @@ class SQSHelper {
             }
         }
         return value;
+    }
+    static async handleEvent(parsedBody, subscriptions, RedisClient) {
+        const subscriptionNameMap = new Map([...subscriptions.entries()].map(entry => [
+            entry[0].name,
+            { eventConstructor: entry[0], eventHandlers: entry[1] },
+        ]));
+        let eventData = SQSHelper.getEventData(subscriptionNameMap, parsedBody.EventName, parsedBody.EventBody);
+        if (eventData) {
+            if (RedisClient) {
+                const canExecute = await RedisHelper_1.RedisHelper.canStartEventExecution({ event: eventData, RedisClient: RedisClient });
+                if (canExecute && eventData.queueId) {
+                    let eventName;
+                    let eventDataParsed;
+                    let eventDataString = await RedisHelper_1.RedisHelper.fetchNextEvent({
+                        queueId: eventData.queueId,
+                        RedisClient: RedisClient,
+                    });
+                    while (eventDataString) {
+                        eventDataParsed = JSON.parse(eventDataString, SQSHelper.jsonDateReviver);
+                        eventName = eventDataParsed.eventName;
+                        eventData = eventDataParsed;
+                        if (eventData && eventData.queueId) {
+                            await SQSHelper.executeEventHandlers(subscriptionNameMap, eventName, eventData);
+                            eventDataString = await RedisHelper_1.RedisHelper.fetchNextEvent({
+                                queueId: eventData.queueId,
+                                RedisClient: RedisClient,
+                            });
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    await SQSHelper.executeEventHandlers(subscriptionNameMap, parsedBody.EventName, eventData);
+                }
+            }
+            else {
+                await SQSHelper.executeEventHandlers(subscriptionNameMap, parsedBody.EventName, eventData);
+            }
+        }
+    }
+    static getEventData(subscriptionNameMap, eventName, eventData) {
+        let event = undefined;
+        if (subscriptionNameMap.has(eventName)) {
+            const subscription = subscriptionNameMap.get(eventName);
+            if (subscription && subscription.eventConstructor) {
+                event = new subscription.eventConstructor(eventData);
+            }
+        }
+        return event;
+    }
+    static async executeEventHandlers(subscriptionNameMap, eventName, eventData) {
+        if (subscriptionNameMap.has(eventName)) {
+            const subscription = subscriptionNameMap.get(eventName);
+            if (subscription && subscription.eventHandlers && subscription.eventHandlers.length > 0) {
+                for (const handler of subscription.eventHandlers) {
+                    await handler.handle(eventData);
+                }
+            }
+        }
     }
 }
 exports.SQSHelper = SQSHelper;
