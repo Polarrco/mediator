@@ -49,6 +49,9 @@ let AWSBus = class AWSBus {
         this.RedisUrl = (_a = options.Redis) === null || _a === void 0 ? void 0 : _a.url;
         if (this.RedisUrl) {
             this.RedisClient = handy_redis_1.createNodeRedisClient(this.RedisUrl);
+            this.RedisClient.nodeRedis.on("error", error => {
+                console.log(error);
+            });
         }
         if (enableConsumer) {
             this.SQSConsumer = SQSHelper_1.SQSHelper.bundleQueueWithSubscriptions({

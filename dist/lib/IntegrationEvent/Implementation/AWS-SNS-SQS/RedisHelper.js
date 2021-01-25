@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class RedisHelper {
     static async storeEventData(options) {
-        if (options.event && options.event.queueId) {
+        if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
             try {
                 const hashKey = `{${options.event.queueId}}_data`;
                 const sortedSetKey = `{${options.event.queueId}}_queue`;
@@ -22,7 +22,7 @@ class RedisHelper {
         }
     }
     static async canStartEventExecution(options) {
-        if (options.RedisClient && options.event && options.event.queueId) {
+        if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
             const activeSetKey = `{${options.event.queueId}}_active`;
             const activeEventKey = `{${options.event.queueId}}_${options.event.integrationEventId}_active`;
             const keysExist = await options.RedisClient.exists(activeEventKey, activeSetKey);
@@ -33,7 +33,7 @@ class RedisHelper {
         return true;
     }
     static async fetchNextEvent(options) {
-        if (options.RedisClient && options.queueId) {
+        if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.queueId) {
             const activeSetKey = `{${options.queueId}}_active`;
             const hashKey = `{${options.queueId}}_data`;
             const sortedSetKey = `{${options.queueId}}_queue`;
