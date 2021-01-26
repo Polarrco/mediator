@@ -11,7 +11,7 @@ export type IntegrationEventOptions<T extends object = object> = T & Integration
 export abstract class IntegrationEvent {
   public readonly integrationEventId: string;
   public readonly integrationEventCreationDate: Date;
-  public readonly queueId?: string;
+  public queueId?: string;
   public eventName?: string;
 
   protected constructor(options: IntegrationEventBaseOptions = {}) {

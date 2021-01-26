@@ -7,7 +7,7 @@ export declare type IntegrationEventOptions<T extends object = object> = T & Int
 export declare abstract class IntegrationEvent {
   readonly integrationEventId: string;
   readonly integrationEventCreationDate: Date;
-  readonly queueId?: string;
+  queueId?: string;
   eventName?: string;
   protected constructor(options?: IntegrationEventBaseOptions);
 }
