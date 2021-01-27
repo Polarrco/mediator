@@ -8,9 +8,9 @@ export class RedisHelper {
   }): Promise<void> {
     if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
       try {
-        const hashKey = `{${options.event.queueId}}_data`;
-        const sortedSetKey = `{${options.event.queueId}}_queue`;
-        const masterSetKey = `master_event_queue`;
+        const hashKey = `data:{${options.event.queueId}}`;
+        const sortedSetKey = `queue:{${options.event.queueId}}`;
+        const masterSetKey = `queue:master`;
         const eventId = options.event.integrationEventId;
         const eventData = JSON.stringify(options.event);
         const score = new Date().getTime();
@@ -30,8 +30,8 @@ export class RedisHelper {
     RedisClient: WrappedNodeRedisClient;
   }): Promise<boolean> {
     if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.event && options.event.queueId) {
-      const activeSetKey = `{${options.event.queueId}}_active`;
-      const activeEventKey = `{${options.event.queueId}}_${options.event.integrationEventId}_active`;
+      const activeSetKey = `active:queue:{${options.event.queueId}}`;
+      const activeEventKey = `active:event:{${options.event.queueId}}_${options.event.integrationEventId}`;
       const keysExist = await options.RedisClient.exists(activeEventKey, activeSetKey);
       if (keysExist > 0) {
         return false;
@@ -45,15 +45,15 @@ export class RedisHelper {
     RedisClient: WrappedNodeRedisClient;
   }): Promise<string | undefined> {
     if (options.RedisClient && options.RedisClient.nodeRedis.connected && options.queueId) {
-      const activeSetKey = `{${options.queueId}}_active`;
-      const hashKey = `{${options.queueId}}_data`;
-      const sortedSetKey = `{${options.queueId}}_queue`;
+      const activeSetKey = `active:queue:{${options.queueId}}`;
+      const hashKey = `data:{${options.queueId}}`;
+      const sortedSetKey = `queue:{${options.queueId}}`;
       const eventIdList = await options.RedisClient.zpopmin(sortedSetKey, 1);
       let activeEventKey;
       if (eventIdList.length > 0) {
         const eventId = eventIdList[0];
         const eventDataString = await options.RedisClient.hget(hashKey, eventId);
-        activeEventKey = `{${options.queueId}}_${eventId}_active`;
+        activeEventKey = `active:event:{${options.queueId}}_${eventId}`;
         if (eventDataString) {
           await options.RedisClient.multi()
             .setnx(activeSetKey, "1")
@@ -66,7 +66,7 @@ export class RedisHelper {
         await options.RedisClient.multi()
           .del(sortedSetKey, hashKey, activeSetKey)
           .exec();
-        const queueIdList = await options.RedisClient.zpopmin(`master_event_queue`, 1);
+        const queueIdList = await options.RedisClient.zpopmin(`queue:master`, 1);
         if (queueIdList.length > 0) {
           return await RedisHelper.fetchNextEvent({ RedisClient: options.RedisClient, queueId: queueIdList[0] });
         }
