@@ -1,5 +1,5 @@
 {
-  "name": "@polarrco/mediator",
+  "name": "@Polarrco/mediator",
   "version": "0.1.0",
   "private": false,
   "main": "index.js",
@@ -33,6 +33,9 @@
       "eslint --fix --quiet",
       "prettier --write"
     ]
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "towerflow": {
     "type": "node-lib"
