@@ -56,7 +56,7 @@ class RedisHelper {
                 await options.RedisClient.multi()
                     .del(sortedSetKey, hashKey, activeSetKey)
                     .exec();
-                await options.RedisClient.zpopmin(`queue:master`, 1);
+                await options.RedisClient.zrem(`queue:master`, sortedSetKey);
             }
         }
     }
