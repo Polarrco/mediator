@@ -24,7 +24,12 @@ class SQSHelper {
                         throw error;
                     }
                     const subscriptions = options.getSubscriptions();
-                    await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
+                    try {
+                        await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
+                    }
+                    catch (error) {
+                        console.log(`Handle integration event error: ${error}`);
+                    }
                 }
             },
         });

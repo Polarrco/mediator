@@ -68,7 +68,11 @@ export class SQSHelper {
           const subscriptions = options.getSubscriptions();
 
           // Put discover logic in here to support dynamically add more subscriptions through applications.
-          await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
+          try {
+            await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
+          } catch (error) {
+            console.log(`Handle integration event error: ${error}`);
+          }
         }
       },
     });
