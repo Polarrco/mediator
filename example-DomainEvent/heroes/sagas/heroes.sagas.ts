@@ -14,7 +14,7 @@ export class HeroesGameSagas {
     return events$.pipe(
       ofType(HeroKilledDragonEvent),
       delay(1000 * 2),
-      map(event => {
+      map((event) => {
         console.log("Inside [HeroesGameSagas] Saga");
         return new DropAncientItemCommand(event.heroId, itemId);
       })

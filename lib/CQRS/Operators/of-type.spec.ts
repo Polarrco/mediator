@@ -17,7 +17,7 @@ describe("Operators/ofType", () => {
     output = [];
     expectedResults = [];
 
-    stream.pipe(ofType(A)).subscribe(event => output.push(event));
+    stream.pipe(ofType(A)).subscribe((event) => output.push(event));
   });
 
   it("filters all the domainEventHandlers when none is an instance of the given types", async () => {
@@ -42,7 +42,7 @@ describe("Operators/ofType", () => {
     expectedResults.push(new A(), new SubA());
 
     stream.next(new B());
-    expectedResults.forEach(event => stream.next(event));
+    expectedResults.forEach((event) => stream.next(event));
 
     expect(output).toEqual(expectedResults);
   });
