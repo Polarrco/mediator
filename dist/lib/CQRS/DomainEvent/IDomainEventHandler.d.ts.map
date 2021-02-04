@@ -1,1 +1,0 @@
-{"version":3,"file":"IDomainEventHandler.d.ts","sourceRoot":"","sources":["../../../../lib/CQRS/DomainEvent/IDomainEventHandler.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAE9C,MAAM,WAAW,mBAAmB,CAAC,CAAC,SAAS,YAAY;IACzD,MAAM,CAAC,KAAK,EAAE,CAAC,GAAG,GAAG,CAAC;CACvB"}

@@ -1,1 +1,0 @@
-{"version":3,"file":"IRequestBus.d.ts","sourceRoot":"","sources":["../../../../lib/CQRS/Request/IRequestBus.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAEtC,MAAM,WAAW,WAAW;IAC1B,OAAO,CAAC,CAAC,SAAS,QAAQ,EAAE,IAAI,EAAE,KAAK,EAAE,CAAC,GAAG,OAAO,CAAC,IAAI,CAAC,CAAC;CAC5D"}
