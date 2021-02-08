@@ -24,19 +24,19 @@ export class DomainEventBus extends ObservableBus<IDomainEvent> implements IDoma
   public publishContainer(eventContainer: DomainEventContainer) {
     const events = eventContainer.getDomainEvents();
 
-    (events || []).forEach(event => this.publish(event));
+    (events || []).forEach((event) => this.publish(event));
 
     eventContainer.clearDomainEvents();
   }
 
   public bind(handler: IDomainEventHandler<IDomainEvent>, name: string) {
     const stream$ = name ? this.ofEventName(name) : this.subject$;
-    stream$.subscribe(event => handler.handle(event));
+    stream$.subscribe((event) => handler.handle(event));
   }
 
   public registerSagas(types: any[] = []) {
     const sagas = types
-      .map(target => {
+      .map((target) => {
         const metadata = Reflect.getMetadata(SAGA_METADATA, target) || [];
         const instance = this.moduleRef.get(target, { strict: false });
         if (!instance) {
@@ -50,7 +50,7 @@ export class DomainEventBus extends ObservableBus<IDomainEvent> implements IDoma
   }
 
   public register(handlers: DomainEventHandlerType[] = []) {
-    handlers.forEach(handler => this.registerHandler(handler));
+    handlers.forEach((handler) => this.registerHandler(handler));
   }
 
   constructor(private readonly commandBus: CommandBus, private readonly moduleRef: ModuleRef) {
@@ -63,11 +63,11 @@ export class DomainEventBus extends ObservableBus<IDomainEvent> implements IDoma
       return;
     }
     const eventsNames = this.reflectEventsNames(handler);
-    eventsNames.map(event => this.bind(instance as IDomainEventHandler<IDomainEvent>, event.name));
+    eventsNames.map((event) => this.bind(instance as IDomainEventHandler<IDomainEvent>, event.name));
   }
 
   protected ofEventName(name: string) {
-    return this.subject$.pipe(filter(event => this.getEventName(event) === name));
+    return this.subject$.pipe(filter((event) => this.getEventName(event) === name));
   }
 
   protected registerSaga(saga: ISaga) {
@@ -78,7 +78,7 @@ export class DomainEventBus extends ObservableBus<IDomainEvent> implements IDoma
     if (!(stream$ instanceof Observable)) {
       throw new InvalidSagaException();
     }
-    stream$.pipe(filter(e => !!e)).subscribe(command => this.commandBus.execute(command));
+    stream$.pipe(filter((e) => !!e)).subscribe((command) => this.commandBus.execute(command));
   }
 
   private getEventName(event: IDomainEvent): string {

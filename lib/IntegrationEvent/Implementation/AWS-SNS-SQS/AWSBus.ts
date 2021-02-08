@@ -86,7 +86,7 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     this.RedisUrl = options.Redis?.url;
     if (this.RedisUrl) {
       this.RedisClient = createNodeRedisClient(this.RedisUrl);
-      this.RedisClient.nodeRedis.on("error", error => {
+      this.RedisClient.nodeRedis.on("error", (error) => {
         console.log(error);
       });
     }
@@ -112,7 +112,7 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
   private readonly RedisClient?: WrappedNodeRedisClient;
 
   private dispose(): Promise<void> {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       if (this.SQSConsumer) {
         this.SQSConsumer.on("stopped", () => {
           console.log(`AWS Integration Event Bus Disposed`);

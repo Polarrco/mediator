@@ -6,7 +6,8 @@ interface IntegrationEventBaseOptions {
   queueId?: string;
 }
 
-export type IntegrationEventOptions<T extends object = object> = T & IntegrationEventBaseOptions;
+export type IntegrationEventOptions<T extends Record<string, any> = Record<string, any>> = T &
+  IntegrationEventBaseOptions;
 
 export abstract class IntegrationEvent {
   public readonly integrationEventId: string;

@@ -1,1 +1,0 @@
-{"version":3,"file":"IDomainEventBus.d.ts","sourceRoot":"","sources":["../../../../lib/CQRS/DomainEvent/IDomainEventBus.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,oBAAoB,EAAE,MAAM,wBAAwB,CAAC;AAC9D,OAAO,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAE9C,MAAM,WAAW,eAAe;IAC9B,OAAO,CAAC,CAAC,SAAS,YAAY,EAAE,KAAK,EAAE,CAAC,GAAG,GAAG,CAAC;IAC/C,gBAAgB,CAAC,cAAc,EAAE,oBAAoB,GAAG,GAAG,CAAC;CAC7D"}

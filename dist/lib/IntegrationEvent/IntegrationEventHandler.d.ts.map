@@ -1,1 +1,0 @@
-{"version":3,"file":"IntegrationEventHandler.d.ts","sourceRoot":"","sources":["../../../lib/IntegrationEvent/IntegrationEventHandler.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AAEtD,MAAM,WAAW,uBAAuB,CAAC,CAAC,SAAS,gBAAgB,GAAG,GAAG;IACvE,MAAM,CAAC,KAAK,EAAE,CAAC,GAAG,OAAO,CAAC,GAAG,CAAC,CAAC;CAChC"}

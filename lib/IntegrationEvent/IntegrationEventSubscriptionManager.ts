@@ -55,7 +55,7 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
     const handlers = this.subscriptions.get(eventConstructor);
     if (handlers) {
       handlers.splice(
-        handlers.findIndex(i => i === eventHandler),
+        handlers.findIndex((i) => i === eventHandler),
         1
       );
 
@@ -100,7 +100,7 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
   private exploreStaticSubscriptions(): void {
     const modules = [...this.modulesContainer.values()];
 
-    for (const { instance } of modules.map(module => [...module.providers.values()]).flat()) {
+    for (const { instance } of modules.map((module) => [...module.providers.values()]).flat()) {
       const eventHandler = instance as IntegrationEventHandler;
       if (!eventHandler || !eventHandler.constructor) {
         continue;

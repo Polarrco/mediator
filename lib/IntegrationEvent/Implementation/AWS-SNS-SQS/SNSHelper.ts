@@ -13,7 +13,7 @@ export class SNSHelper {
     event: IntegrationEvent;
     SNSArn: string;
     SNSClient: SNS;
-  }): Promise<object> {
+  }): Promise<Record<string, any>> {
     const params = {
       Message: JSON.stringify(options.event),
       // We add in a message attribute to filter on.

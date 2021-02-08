@@ -5,14 +5,12 @@ import { IntegrationEventSubscriptions } from "../../IntegrationEventSubscriptio
 import { WrappedNodeRedisClient } from "handy-redis";
 import { RedisHelper } from "./RedisHelper";
 import { IntegrationEvent } from "../../IntegrationEvent";
-import { getConstructorName } from "../../../Helper/getConstructorName";
 import { ConstructorType } from "../../../Helper/ConstructorType";
 import { IntegrationEventHandler } from "../../IntegrationEventHandler";
-import { eventNames } from "cluster";
 
 interface SQSMessage {
   EventName: string; // Set by MessageAttributes
-  EventBody: object; // Set by Message
+  EventBody: Record<string, any>; // Set by Message
   TimestampParsed: Date; // Set by Timestamp
 
   Type: string;
@@ -52,7 +50,7 @@ export class SQSHelper {
       queueUrl: options.SQSUrl,
       batchSize: options.batchSize || 1,
       visibilityTimeout: options.visibilityTimeout || undefined,
-      handleMessage: async message => {
+      handleMessage: async (message) => {
         if (message.Body) {
           let parsedBody: SQSMessage;
           try {
@@ -105,7 +103,7 @@ export class SQSHelper {
         eventHandlers: IntegrationEventHandler<IntegrationEvent>[];
       }
     > = new Map(
-      [...subscriptions.entries()].map(entry => [
+      [...subscriptions.entries()].map((entry) => [
         entry[0].name,
         { eventConstructor: entry[0], eventHandlers: entry[1] },
       ])

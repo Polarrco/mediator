@@ -63,9 +63,7 @@ export class RedisHelper {
           return eventDataString;
         }
       } else {
-        await options.RedisClient.multi()
-          .del(sortedSetKey, hashKey, activeSetKey)
-          .exec();
+        await options.RedisClient.multi().del(sortedSetKey, hashKey, activeSetKey).exec();
         await options.RedisClient.zrem(`queue:master`, sortedSetKey);
       }
     }

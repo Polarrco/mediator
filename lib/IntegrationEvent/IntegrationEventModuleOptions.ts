@@ -13,8 +13,6 @@ interface OptionsForInMemory {
   type: "InMemory";
 }
 
-export type IntegrationEventModuleOptions =
-  | OptionsForAWS
-  | OptionsForInMemory;
+export type IntegrationEventModuleOptions = OptionsForAWS | OptionsForInMemory;
 
 export const IntegrationEventModuleOptionsIoCAnchor = Symbol("IntegrationEventModuleOptionsIoCAnchor");
