@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ObservableBus = void 0;
 const rxjs_1 = require("rxjs");
 class ObservableBus extends rxjs_1.Observable {
     constructor() {

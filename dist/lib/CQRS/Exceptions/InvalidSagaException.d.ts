@@ -1,4 +1,4 @@
 export declare class InvalidSagaException extends Error {
-    constructor();
+  constructor();
 }
 //# sourceMappingURL=InvalidSagaException.d.ts.map

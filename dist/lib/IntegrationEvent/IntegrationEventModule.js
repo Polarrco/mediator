@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var IntegrationEventModule_1;
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.IntegrationEventModule = void 0;
 const common_1 = require("@nestjs/common");
 const AWSBus_1 = require("./Implementation/AWS-SNS-SQS/AWSBus");
 const InMemoryBus_1 = require("./Implementation/InMemory/InMemoryBus");

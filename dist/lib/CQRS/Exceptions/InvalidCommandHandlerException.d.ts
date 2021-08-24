@@ -1,4 +1,4 @@
 export declare class InvalidCommandHandlerException extends Error {
-    constructor();
+  constructor();
 }
 //# sourceMappingURL=InvalidCommandHandlerException.d.ts.map

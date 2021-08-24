@@ -1,4 +1,4 @@
 export declare class InvalidDomainEventHandlerException extends Error {
-    constructor();
+  constructor();
 }
 //# sourceMappingURL=InvalidDomainEventHandlerException.d.ts.map

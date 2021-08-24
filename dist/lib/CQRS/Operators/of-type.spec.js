@@ -29,14 +29,14 @@ describe("Operators/ofType", () => {
     it("filters instances of domainEventHandlers to keep those of the given types", async () => {
         expectedResults.push(new A());
         stream.next(new B());
-        stream.next(...expectedResults);
+        expectedResults.forEach((event) => stream.next(event));
         stream.next(new Date());
         expect(output).toEqual(expectedResults);
     });
     it("does not filter instances of classes extending the given types", async () => {
         expectedResults.push(new A(), new SubA());
         stream.next(new B());
-        expectedResults.forEach(event => stream.next(event));
+        expectedResults.forEach((event) => stream.next(event));
         expect(output).toEqual(expectedResults);
     });
 });

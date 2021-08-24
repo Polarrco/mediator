@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SNSHelper = void 0;
 const getConstructorName_1 = require("../../../Helper/getConstructorName");
 class SNSHelper {
     static async publishEvent(options) {

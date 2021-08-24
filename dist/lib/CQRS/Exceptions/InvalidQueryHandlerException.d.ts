@@ -1,4 +1,4 @@
 export declare class InvalidQueryHandlerException extends Error {
-    constructor();
+  constructor();
 }
 //# sourceMappingURL=InvalidQueryHandlerException.d.ts.map

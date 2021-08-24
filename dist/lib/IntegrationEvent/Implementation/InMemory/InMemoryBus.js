@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.InMemoryBus = void 0;
 const common_1 = require("@nestjs/common");
 const getConstructor_1 = require("../../../Helper/getConstructor");
 const IntegrationEventSubscriptionManager_1 = require("../../IntegrationEventSubscriptionManager");

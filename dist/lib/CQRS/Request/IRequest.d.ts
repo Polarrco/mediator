@@ -1,3 +1,2 @@
-export interface IRequest {
-}
+export interface IRequest {}
 //# sourceMappingURL=IRequest.d.ts.map

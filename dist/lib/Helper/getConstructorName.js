@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getConstructorName = void 0;
 const getConstructor_1 = require("./getConstructor");
 function getConstructorName(instance) {
     var _a;

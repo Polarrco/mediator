@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const ruid_1 = require("@sevenryze/ruid");
+exports.IntegrationEvent = void 0;
+const ruid_1 = require("@polarrco/ruid");
 class IntegrationEvent {
     constructor(options = {}) {
         this.integrationEventId = options.integrationEventId || new ruid_1.Ruid().toString();

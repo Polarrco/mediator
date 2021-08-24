@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var CQRSModule_1;
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CQRSModule = exports.CQRS_MODULE_OPTIONS = void 0;
 const common_1 = require("@nestjs/common");
 const CommandBus_1 = require("./Command/CommandBus");
 const DomainEventBus_1 = require("./DomainEvent/DomainEventBus");

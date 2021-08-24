@@ -1,1 +1,1 @@
-{"version":3,"file":"getConstructor.js","sourceRoot":"","sources":["../../../lib/Helper/getConstructor.ts"],"names":[],"mappings":";;AAEA,SAAgB,cAAc,CAAI,QAAW;;IAC3C,aAAO,MAAM,CAAC,cAAc,CAAC,QAAQ,CAAC,0CAAE,WAAW,CAAC;AACtD,CAAC;AAFD,wCAEC"}
+{"version":3,"file":"getConstructor.js","sourceRoot":"","sources":["../../../lib/Helper/getConstructor.ts"],"names":[],"mappings":";;;AAEA,SAAgB,cAAc,CAAI,QAAW;;IAC3C,OAAO,MAAA,MAAM,CAAC,cAAc,CAAC,QAAQ,CAAC,0CAAE,WAAW,CAAC;AACtD,CAAC;AAFD,wCAEC"}

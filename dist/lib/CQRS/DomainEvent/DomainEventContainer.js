@@ -1,6 +1,7 @@
 "use strict";
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DomainEventContainer = void 0;
 const INTERNAL_EVENTS = Symbol("InternalEventsSlut");
 class DomainEventContainer {
     constructor() {

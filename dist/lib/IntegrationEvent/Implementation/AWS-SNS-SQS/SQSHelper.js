@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SQSHelper = void 0;
 const date_fns_1 = require("date-fns");
 const sqs_consumer_1 = require("sqs-consumer");
 class SQSHelper {
