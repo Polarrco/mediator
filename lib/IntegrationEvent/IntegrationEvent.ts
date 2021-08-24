@@ -1,4 +1,4 @@
-import { Ruid } from "@sevenryze/ruid";
+import { Ruid } from "@polarrco/ruid";
 
 interface IntegrationEventBaseOptions {
   integrationEventId?: string;
