@@ -3,6 +3,7 @@ import { getConstructor } from "../../../Helper/getConstructor";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import { IntegrationEventBus } from "../../IntegrationEventBus";
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
+import { getConstructorName } from "../../../Helper/getConstructorName";
 
 @Injectable()
 export class InMemoryBus implements IntegrationEventBus, OnModuleDestroy {
@@ -11,9 +12,11 @@ export class InMemoryBus implements IntegrationEventBus, OnModuleDestroy {
   }
 
   async publish(event: IntegrationEvent): Promise<void> {
-    const handlers = this.subscriptionManager.getSubscriptionsForEvent(getConstructor(event)!);
-    for (const handler of handlers) {
-      await handler.handle(event);
+    const subscription = this.subscriptionManager.getSubscriptionForEvent(getConstructorName(event)!);
+    if (subscription) {
+      for (const handler of subscription.handlers) {
+        await handler.handle(event);
+      }
     }
   }
 

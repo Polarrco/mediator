@@ -5,9 +5,14 @@ import { IntegrationEvent } from "./IntegrationEvent";
 import { IntegrationEventHandler } from "./IntegrationEventHandler";
 import { INTEGRATION_EVENTS_HANDLER_METADATA } from "./WatchIntegrationEventDecorator";
 
-export type IntegrationEventSubscriptions = Map<
-  ConstructorType<IntegrationEvent>,
-  IntegrationEventHandler<IntegrationEvent>[]
+export interface IntegrationEventSubscription {
+  constructor: ConstructorType<IntegrationEvent>;
+  handlers: IntegrationEventHandler<IntegrationEvent>[];
+}
+
+export type IntegrationEventSubscriptionsMap = Map<
+  string,
+  IntegrationEventSubscription
 >;
 
 @Injectable()
@@ -16,35 +21,28 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
     return this.subscriptions.size === 0;
   }
 
-  hasSubscriptionsForEvent(eventConstructor: ConstructorType<IntegrationEvent>): boolean {
-    return this.subscriptions.has(eventConstructor);
+  hasSubscriptionForEvent(eventName: string): boolean {
+    return this.subscriptions.has(eventName);
   }
 
-  getSubscriptions(): IntegrationEventSubscriptions {
-    return new Map([...this.subscriptions]);
-  }
-
-  getSubscriptionsForEvent<E extends IntegrationEvent>(
-    eventConstructor: ConstructorType<E>
-  ): IntegrationEventHandler<E>[] {
-    const handlers = this.subscriptions.get(eventConstructor);
-
-    if (handlers) {
-      return [...handlers];
-    } else {
-      return [];
-    }
+  getSubscriptionForEvent(
+    eventName: string
+  ): IntegrationEventSubscription | undefined {
+    return this.subscriptions.get(eventName);
   }
 
   addSubscription<E extends IntegrationEvent, EH extends IntegrationEventHandler<E>>(
     eventConstructor: ConstructorType<E>,
     eventHandler: EH
   ): void {
-    const handlers = this.subscriptions.get(eventConstructor);
-    if (handlers) {
-      handlers.push(eventHandler);
+    const subscription = this.subscriptions.get(eventConstructor.name);
+    if (subscription) {
+      subscription.handlers.push(eventHandler);
     } else {
-      this.subscriptions.set(eventConstructor, [eventHandler]);
+      this.subscriptions.set(eventConstructor.name, {
+        constructor: eventConstructor,
+        handlers: [eventHandler],
+      });
     }
   }
 
@@ -52,21 +50,21 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
     eventConstructor: ConstructorType<E>,
     eventHandler: EH
   ): void {
-    const handlers = this.subscriptions.get(eventConstructor);
-    if (handlers) {
-      handlers.splice(
-        handlers.findIndex((i) => i === eventHandler),
+    const subscription = this.subscriptions.get(eventConstructor.name);
+    if (subscription) {
+      subscription.handlers.splice(
+        subscription.handlers.findIndex((i) => i === eventHandler),
         1
       );
 
-      if (handlers.length === 0) {
-        this.subscriptions.delete(eventConstructor);
+      if (subscription.handlers.length === 0) {
+        this.subscriptions.delete(eventConstructor.name);
       }
     }
   }
 
-  removeSubscriptionsForEvent<E extends IntegrationEvent>(eventConstructor: ConstructorType<E>): void {
-    this.subscriptions.delete(eventConstructor);
+  removeSubscriptionForEvent(eventName: string): void {
+    this.subscriptions.delete(eventName);
   }
 
   clear(): void {
@@ -74,7 +72,7 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
   }
 
   onModuleInit(): void {
-    this.exploreStaticSubscriptions();
+    this.loadStaticSubscriptions();
   }
 
   // onApplicationBootstrap(): void {
@@ -95,9 +93,9 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
 
   constructor(private readonly modulesContainer: ModulesContainer) {}
 
-  private subscriptions: IntegrationEventSubscriptions = new Map();
+  private subscriptions: IntegrationEventSubscriptionsMap = new Map();
 
-  private exploreStaticSubscriptions(): void {
+  private loadStaticSubscriptions(): void {
     const modules = [...this.modulesContainer.values()];
 
     for (const { instance } of modules.map((module) => [...module.providers.values()]).flat()) {
@@ -108,12 +106,7 @@ export class IntegrationEventSubscriptionManager implements OnModuleInit {
 
       const eventConstructor = Reflect.getMetadata(INTEGRATION_EVENTS_HANDLER_METADATA, eventHandler.constructor);
       if (eventConstructor) {
-        const handlers = this.subscriptions.get(eventConstructor);
-        if (handlers) {
-          handlers.push(eventHandler);
-        } else {
-          this.subscriptions.set(eventConstructor, [eventHandler]);
-        }
+        this.addSubscription(eventConstructor, eventHandler);
       }
     }
   }

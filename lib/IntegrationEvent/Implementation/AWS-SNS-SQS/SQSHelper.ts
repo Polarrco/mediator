@@ -1,12 +1,14 @@
 import { SQS } from "aws-sdk";
-import { isDate, isValid, parseJSON } from "date-fns";
 import { Consumer } from "sqs-consumer";
-import { IntegrationEventSubscriptions } from "../../IntegrationEventSubscriptionManager";
+import {
+  IntegrationEventSubscription,
+  IntegrationEventSubscriptionManager,
+} from "../../IntegrationEventSubscriptionManager";
 import { WrappedNodeRedisClient } from "handy-redis";
 import { RedisHelper } from "./RedisHelper";
-import { IntegrationEvent } from "../../IntegrationEvent";
-import { ConstructorType } from "../../../Helper/ConstructorType";
-import { IntegrationEventHandler } from "../../IntegrationEventHandler";
+import { jsonDateReviver } from "../../../Helper/jsonDateReviver";
+import { executeEventHandlers } from "../../../Helper/executeWithEventHandlers";
+import { getEvent } from "../../../Helper/getEvent";
 
 interface SQSMessage {
   EventName: string; // Set by MessageAttributes
@@ -40,7 +42,7 @@ export class SQSHelper {
   public static bundleQueueWithSubscriptions(options: {
     SQSClient: SQS;
     SQSUrl: string;
-    getSubscriptions: () => IntegrationEventSubscriptions;
+    subscriptionManager: IntegrationEventSubscriptionManager;
     RedisClient?: WrappedNodeRedisClient;
     batchSize?: number;
     visibilityTimeout?: number;
@@ -57,17 +59,21 @@ export class SQSHelper {
             parsedBody = JSON.parse(message.Body);
             parsedBody.TimestampParsed = new Date(parsedBody.Timestamp);
             parsedBody.EventName = parsedBody.MessageAttributes["event-name"]["Value"];
-            parsedBody.EventBody = JSON.parse(parsedBody.Message, SQSHelper.jsonDateReviver);
+            parsedBody.EventBody = JSON.parse(parsedBody.Message, jsonDateReviver);
           } catch (error) {
             console.log(`Parse integration event error: ${error}`);
             throw error;
           }
 
-          const subscriptions = options.getSubscriptions();
+          const subscription = options.subscriptionManager.getSubscriptionForEvent(parsedBody.EventName);
+
+          if (!subscription) {
+            throw new Error(`There is no subscription for this event: ${parsedBody.EventName}.`);
+          }
 
           // Put discover logic in here to support dynamically add more subscriptions through applications.
           try {
-            await SQSHelper.handleEvent(parsedBody, subscriptions, options.RedisClient);
+            await SQSHelper.handleEvent(parsedBody, subscription, options.RedisClient);
           } catch (error) {
             console.log(`Handle integration event error: ${error}`);
           }
@@ -80,55 +86,31 @@ export class SQSHelper {
     return consumer;
   }
 
-  private static jsonDateReviver(key: string, value: any) {
-    if (typeof value === "string") {
-      const date = parseJSON(value);
-      if (isDate(date) && isValid(date)) {
-        return date;
-      }
-    }
-
-    return value;
-  }
-
   private static async handleEvent(
     parsedBody: SQSMessage,
-    subscriptions: IntegrationEventSubscriptions,
+    subscription: IntegrationEventSubscription,
     RedisClient?: WrappedNodeRedisClient
   ): Promise<void> {
-    const subscriptionNameMap: Map<
-      string,
-      {
-        eventConstructor: ConstructorType<IntegrationEvent>;
-        eventHandlers: IntegrationEventHandler<IntegrationEvent>[];
-      }
-    > = new Map(
-      [...subscriptions.entries()].map((entry) => [
-        entry[0].name,
-        { eventConstructor: entry[0], eventHandlers: entry[1] },
-      ])
-    );
+    let event = getEvent(subscription, parsedBody.EventBody);
 
-    let eventData = SQSHelper.getEventData(subscriptionNameMap, parsedBody.EventName, parsedBody.EventBody);
-
-    if (eventData) {
+    if (event) {
       if (RedisClient) {
-        const canExecute = await RedisHelper.canStartEventExecution({ event: eventData, RedisClient: RedisClient });
-        if (canExecute && eventData.queueId) {
+        const canExecute = await RedisHelper.canStartEventExecution({ event: event, RedisClient: RedisClient });
+        if (canExecute && event.queueId) {
           let eventName: string;
           let eventDataParsed: any;
           let eventDataString = await RedisHelper.fetchNextEvent({
-            queueId: eventData.queueId,
+            queueId: event.queueId,
             RedisClient: RedisClient,
           });
           while (eventDataString) {
-            eventDataParsed = JSON.parse(eventDataString, SQSHelper.jsonDateReviver);
+            eventDataParsed = JSON.parse(eventDataString, jsonDateReviver);
             eventName = eventDataParsed.eventName;
-            eventData = eventDataParsed;
-            if (eventData && eventData.queueId) {
-              await SQSHelper.executeEventHandlers(subscriptionNameMap, eventName, eventData);
+            event = eventDataParsed;
+            if (event && event.queueId) {
+              await executeEventHandlers(subscription, event);
               eventDataString = await RedisHelper.fetchNextEvent({
-                queueId: eventData.queueId,
+                queueId: event.queueId,
                 RedisClient: RedisClient,
               });
             } else {
@@ -136,52 +118,10 @@ export class SQSHelper {
             }
           }
         } else {
-          await SQSHelper.executeEventHandlers(subscriptionNameMap, parsedBody.EventName, eventData);
+          await executeEventHandlers(subscription, event);
         }
       } else {
-        await SQSHelper.executeEventHandlers(subscriptionNameMap, parsedBody.EventName, eventData);
-      }
-    }
-  }
-
-  private static getEventData(
-    subscriptionNameMap: Map<
-      string,
-      {
-        eventConstructor: ConstructorType<IntegrationEvent>;
-        eventHandlers: IntegrationEventHandler<IntegrationEvent>[];
-      }
-    >,
-    eventName: string,
-    eventData: any
-  ): IntegrationEvent | undefined {
-    let event = undefined;
-    if (subscriptionNameMap.has(eventName)) {
-      const subscription = subscriptionNameMap.get(eventName);
-      if (subscription && subscription.eventConstructor) {
-        event = new subscription.eventConstructor(eventData);
-      }
-    }
-    return event;
-  }
-
-  private static async executeEventHandlers(
-    subscriptionNameMap: Map<
-      string,
-      {
-        eventConstructor: ConstructorType<IntegrationEvent>;
-        eventHandlers: IntegrationEventHandler<IntegrationEvent>[];
-      }
-    >,
-    eventName: string,
-    eventData: IntegrationEvent
-  ): Promise<void> {
-    if (subscriptionNameMap.has(eventName)) {
-      const subscription = subscriptionNameMap.get(eventName);
-      if (subscription && subscription.eventHandlers && subscription.eventHandlers.length > 0) {
-        for (const handler of subscription.eventHandlers) {
-          await handler.handle(eventData);
-        }
+        await executeEventHandlers(subscription, event);
       }
     }
   }

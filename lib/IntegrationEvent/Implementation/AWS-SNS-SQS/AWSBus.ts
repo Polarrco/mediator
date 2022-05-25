@@ -95,7 +95,7 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
       this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
         SQSUrl: this.SQSUrl,
         SQSClient: this.SQSClient,
-        getSubscriptions: () => this.subscriptionManager.getSubscriptions(),
+        subscriptionManager: this.subscriptionManager,
         RedisClient: this.RedisClient,
       });
     }
