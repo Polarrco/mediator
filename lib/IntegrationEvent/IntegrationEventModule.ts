@@ -5,6 +5,7 @@ import { InMemoryBus } from "./Implementation/InMemory/InMemoryBus";
 import { IntegrationEventBus, IntegrationEventBusIoCAnchor } from "./IntegrationEventBus";
 import { IntegrationEventModuleOptions, IntegrationEventModuleOptionsIoCAnchor } from "./IntegrationEventModuleOptions";
 import { IntegrationEventSubscriptionManager } from "./IntegrationEventSubscriptionManager";
+import { AliyunBus } from "./Implementation/Aliyun-RocketMQ/AliyunBus";
 
 /**
  * Note that the properties returned by the dynamic module extend (rather than override) the base module metadata defined in the @Module() decorator.
@@ -25,6 +26,9 @@ export class IntegrationEventModule {
         break;
       case "InMemory":
         implementationConstructor = InMemoryBus;
+        break;
+      case "Aliyun-RocketMQ":
+        implementationConstructor = AliyunBus;
         break;
       default:
         throw new Error(`Got invalid integration event bus type.`);

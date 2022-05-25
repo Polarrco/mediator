@@ -21,13 +21,13 @@ export class IAMController {
     const subscriptionManager = this.eventBus.getSubscriptionManager();
     console.log("Subscription is empty: " + subscriptionManager.isEmpty());
     console.log(
-      `Has subscribed to UserCreatedIntegrationEvent: ${subscriptionManager.hasSubscriptionsForEvent(
-        UserCreatedIntegrationEvent
+      `Has subscribed to UserCreatedIntegrationEvent: ${subscriptionManager.hasSubscriptionForEvent(
+        UserCreatedIntegrationEvent.name
       )}`
     );
     console.log(
-      `The subscriptions of UserCreatedIntegrationEvent: ${subscriptionManager.getSubscriptionsForEvent(
-        UserCreatedIntegrationEvent
+      `The subscription of UserCreatedIntegrationEvent: ${subscriptionManager.getSubscriptionForEvent(
+        UserCreatedIntegrationEvent.name
       )}`
     );
 

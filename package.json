@@ -73,6 +73,7 @@
     "rxjs": "^7.3.0"
   },
   "dependencies": {
+    "@aliyunmq/mq-http-sdk": "^1.0.4",
     "@polarrco/ruid": "github:Polarrco/ruid#1.4.1",
     "@types/node": "^16.7.1",
     "aws-sdk": "^2.974.0",

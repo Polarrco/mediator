@@ -1,12 +1,12 @@
 {
   "git": {
-    "commitMessage": "chore(release): release v${version}"
+    "commitMessage": "chore(release): release v${version}",
+    "commit": false,
+    "tag": true,
+    "push": true
   },
   "github": {
     "release": true
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "plugins": {
     "@release-it/conventional-changelog": {
