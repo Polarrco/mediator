@@ -18,7 +18,8 @@ export class InMemoryBus implements IntegrationEventBus, OnModuleDestroy {
     );
 
     if (!subscription) {
-      throw new Error(`There is no subscription for this event: ${getConstructorName(event)}.`);
+      console.log(`There is no subscription for this event: ${getConstructorName(event)}.`);
+      return;
     }
 
     await handleEvent({
