@@ -1,12 +1,11 @@
-import {
-  IntegrationEventSubscription,
-  IntegrationEventSubscriptionManager,
-} from "../../IntegrationEventSubscriptionManager";
+import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import * as AliyunMQ from "@aliyunmq/mq-http-sdk";
 import { jsonDateReviver } from "../../../Helper/jsonDateReviver";
 import { getEvent } from "../../../Helper/getEvent";
-import { executeEventHandlers } from "../../../Helper/executeWithEventHandlers";
+import { handleEvent } from "../../../Helper/handleEvent";
+import { undefinedEventName } from "../../../Helper/undefinedEventName";
+import { WrappedNodeRedisClient } from "handy-redis";
 
 interface RocketMQMessage {
   MessageId: string;
@@ -34,10 +33,6 @@ export interface RocketMQOptions {
   instanceId: string;
   topic: string;
   groupId: string;
-  enableConsumer: boolean;
-  batchSize: number;
-  pollingDelayInSeconds: number;
-  subscriptionManager: IntegrationEventSubscriptionManager;
 }
 
 interface RocketMQProducerPublishResponse {
@@ -89,29 +84,19 @@ export class RocketMQHelper {
     getConsumer: (instanceId: string, topicName: string, groupId: string) => RocketMQConsumer;
   };
   private producer: RocketMQProducer;
-  private consumer?: RocketMQConsumer;
-  private stopConsuming: boolean;
+  private consumer: RocketMQConsumer;
+  private stopConsuming: boolean = true;
   private isConsuming: boolean = false;
 
   constructor(options: RocketMQOptions) {
     this.client = new AliyunMQ.MQClient(options.endpoint, options.accessKeyId, options.accessKeySecret);
     this.producer = this.client.getProducer(options.instanceId, options.topic);
-    this.stopConsuming = true;
-    if (options.enableConsumer) {
-      this.consumer = this.client.getConsumer(options.instanceId, options.topic, options.groupId);
-      this.startConsumer({
-        batchSize: options.batchSize,
-        pollingDelayInSeconds: options.pollingDelayInSeconds,
-        subscriptionManager: options.subscriptionManager,
-      }).then(() => {
-        console.log("Aliyun RocketMQ consumer started");
-      });
-    }
+    this.consumer = this.client.getConsumer(options.instanceId, options.topic, options.groupId);
   }
 
   async publish(event: IntegrationEvent): Promise<RocketMQProducerPublishResponse> {
     const msgProperties = new AliyunMQ.MessageProperties();
-    msgProperties.putProperty("eventName", event.eventName || "UndefinedEventName");
+    msgProperties.putProperty("eventName", event.eventName || undefinedEventName);
     return this.producer.publishMessage(JSON.stringify(event), "", msgProperties);
   }
 
@@ -127,10 +112,11 @@ export class RocketMQHelper {
     });
   }
 
-  private async startConsumer(options: {
+  async startConsumer(options: {
     batchSize: number;
     pollingDelayInSeconds: number;
     subscriptionManager: IntegrationEventSubscriptionManager;
+    RedisClient?: WrappedNodeRedisClient;
   }): Promise<void> {
     if (this.consumer) {
       this.stopConsuming = false;
@@ -169,32 +155,35 @@ export class RocketMQHelper {
                     console.log(`There is no subscription for this event: ${message.Properties.eventName}.`);
                     return;
                   }
-                  return this.handleEvent(message, subscription);
+                  try {
+                    const event = getEvent(subscription, JSON.parse(message.MessageBody, jsonDateReviver));
+                    if (event) {
+                      return handleEvent({
+                        event,
+                        subscription,
+                        RedisClient: options.RedisClient,
+                      });
+                    }
+                  } catch (error) {
+                    console.log(`Could not construct event: ${message.Properties.eventName}`, error);
+                  }
                 })
             );
             results.forEach((result) => {
               if (result.status !== "fulfilled") {
-                console.log(`Handle integration event error: ${result.reason}`);
+                console.log("Handle integration event error:", result.reason);
               }
             });
           }
-        } catch (e: any) {
-          if (e.Code.indexOf("MessageNotExist") > -1) {
+        } catch (error: any) {
+          if (error.Code.indexOf("MessageNotExist") > -1) {
             // Continue the next poll
           } else {
-            // Log error
+            console.log("Unexpected error while polling messages", error);
           }
         }
         this.isConsuming = false;
       }
-    }
-  }
-
-  private async handleEvent(message: RocketMQMessage, subscription: IntegrationEventSubscription): Promise<void> {
-    const event = getEvent(subscription, JSON.parse(message.MessageBody, jsonDateReviver));
-
-    if (event) {
-      await executeEventHandlers(subscription, event);
     }
   }
 }

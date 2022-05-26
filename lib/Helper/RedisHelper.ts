@@ -1,4 +1,4 @@
-import { IntegrationEvent } from "../../IntegrationEvent";
+import { IntegrationEvent } from "../IntegrationEvent/IntegrationEvent";
 import { WrappedNodeRedisClient } from "handy-redis";
 
 export class RedisHelper {

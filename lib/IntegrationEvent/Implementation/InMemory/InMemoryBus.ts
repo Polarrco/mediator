@@ -1,9 +1,10 @@
 import { Injectable, OnModuleDestroy } from "@nestjs/common";
-import { getConstructor } from "../../../Helper/getConstructor";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import { IntegrationEventBus } from "../../IntegrationEventBus";
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { getConstructorName } from "../../../Helper/getConstructorName";
+import { handleEvent } from "../../../Helper/handleEvent";
+import { undefinedEventName } from "../../../Helper/undefinedEventName";
 
 @Injectable()
 export class InMemoryBus implements IntegrationEventBus, OnModuleDestroy {
@@ -12,12 +13,18 @@ export class InMemoryBus implements IntegrationEventBus, OnModuleDestroy {
   }
 
   async publish(event: IntegrationEvent): Promise<void> {
-    const subscription = this.subscriptionManager.getSubscriptionForEvent(getConstructorName(event)!);
-    if (subscription) {
-      for (const handler of subscription.handlers) {
-        await handler.handle(event);
-      }
+    const subscription = this.subscriptionManager.getSubscriptionForEvent(
+      getConstructorName(event) || undefinedEventName
+    );
+
+    if (!subscription) {
+      throw new Error(`There is no subscription for this event: ${getConstructorName(event)}.`);
     }
+
+    await handleEvent({
+      event,
+      subscription,
+    });
   }
 
   onModuleDestroy(): void {

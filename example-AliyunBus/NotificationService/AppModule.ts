@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 import { IntegrationEventModule } from "../../lib";
 import { NotificationModule } from "./ApiGateway/NotificationModule";
-import { EventBus_Usage } from "../../lib/IntegrationEvent/IntegrationEventModuleOptions";
+import { EventBus_Type, EventBus_Usage } from "../../lib/IntegrationEvent/IntegrationEventModuleOptions";
 
 @Module({
   imports: [
     IntegrationEventModule.forRoot({
-      type: "Aliyun-RocketMQ",
-      usage: process.env.ALIYUN_BUS_USAGE as EventBus_Usage,
+      type: EventBus_Type.Aliyun_RocketMQ,
+      usage: EventBus_Usage.All,
       rocketMQ: {
         accessKeyId: process.env.ALIYUN_BUS_ROCKETMQ_ACCESS_KEY_ID!,
         accessKeySecret: process.env.ALIYUN_BUS_ROCKETMQ_ACCESS_KEY_SECRET!,

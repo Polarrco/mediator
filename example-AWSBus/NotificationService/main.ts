@@ -1,3 +1,6 @@
+// eslint-disable-next-line
+require("dotenv-safe").config();
+
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./AppModule";
 

@@ -1,13 +1,9 @@
 import { SQS } from "aws-sdk";
 import { Consumer } from "sqs-consumer";
-import {
-  IntegrationEventSubscription,
-  IntegrationEventSubscriptionManager,
-} from "../../IntegrationEventSubscriptionManager";
+import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { WrappedNodeRedisClient } from "handy-redis";
-import { RedisHelper } from "./RedisHelper";
 import { jsonDateReviver } from "../../../Helper/jsonDateReviver";
-import { executeEventHandlers } from "../../../Helper/executeWithEventHandlers";
+import { handleEvent } from "../../../Helper/handleEvent";
 import { getEvent } from "../../../Helper/getEvent";
 
 interface SQSMessage {
@@ -68,14 +64,22 @@ export class SQSHelper {
           const subscription = options.subscriptionManager.getSubscriptionForEvent(parsedBody.EventName);
 
           if (!subscription) {
-            throw new Error(`There is no subscription for this event: ${parsedBody.EventName}.`);
+            console.log(`There is no subscription for this event: ${parsedBody.EventName}.`);
+            return;
           }
 
           // Put discover logic in here to support dynamically add more subscriptions through applications.
           try {
-            await SQSHelper.handleEvent(parsedBody, subscription, options.RedisClient);
+            const event = getEvent(subscription, parsedBody.EventBody);
+            if (event) {
+              await handleEvent({
+                event,
+                subscription,
+                RedisClient: options.RedisClient,
+              });
+            }
           } catch (error) {
-            console.log(`Handle integration event error: ${error}`);
+            console.log(`Could not construct event: ${parsedBody.EventName}`, error);
           }
         }
       },
@@ -84,45 +88,5 @@ export class SQSHelper {
     consumer.start();
 
     return consumer;
-  }
-
-  private static async handleEvent(
-    parsedBody: SQSMessage,
-    subscription: IntegrationEventSubscription,
-    RedisClient?: WrappedNodeRedisClient
-  ): Promise<void> {
-    let event = getEvent(subscription, parsedBody.EventBody);
-
-    if (event) {
-      if (RedisClient) {
-        const canExecute = await RedisHelper.canStartEventExecution({ event: event, RedisClient: RedisClient });
-        if (canExecute && event.queueId) {
-          let eventName: string;
-          let eventDataParsed: any;
-          let eventDataString = await RedisHelper.fetchNextEvent({
-            queueId: event.queueId,
-            RedisClient: RedisClient,
-          });
-          while (eventDataString) {
-            eventDataParsed = JSON.parse(eventDataString, jsonDateReviver);
-            eventName = eventDataParsed.eventName;
-            event = eventDataParsed;
-            if (event && event.queueId) {
-              await executeEventHandlers(subscription, event);
-              eventDataString = await RedisHelper.fetchNextEvent({
-                queueId: event.queueId,
-                RedisClient: RedisClient,
-              });
-            } else {
-              break;
-            }
-          }
-        } else {
-          await executeEventHandlers(subscription, event);
-        }
-      } else {
-        await executeEventHandlers(subscription, event);
-      }
-    }
   }
 }

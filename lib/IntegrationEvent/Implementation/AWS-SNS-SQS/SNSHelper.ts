@@ -1,6 +1,7 @@
 import { SNS } from "aws-sdk";
 import { getConstructorName } from "../../../Helper/getConstructorName";
 import { IntegrationEvent } from "../../IntegrationEvent";
+import { undefinedEventName } from "../../../Helper/undefinedEventName";
 
 /**
  * The naming convention for SNS topic is Service-[ServiceName].
@@ -20,7 +21,7 @@ export class SNSHelper {
       MessageAttributes: {
         "event-name": {
           DataType: "String",
-          StringValue: getConstructorName(options.event) || "UndefinedEventName",
+          StringValue: getConstructorName(options.event) || undefinedEventName,
         },
       },
       TopicArn: options.SNSArn,

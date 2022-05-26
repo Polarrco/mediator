@@ -3,7 +3,11 @@ import { ConstructorType } from "../Helper/ConstructorType";
 import { AWSBus } from "./Implementation/AWS-SNS-SQS/AWSBus";
 import { InMemoryBus } from "./Implementation/InMemory/InMemoryBus";
 import { IntegrationEventBus, IntegrationEventBusIoCAnchor } from "./IntegrationEventBus";
-import { IntegrationEventModuleOptions, IntegrationEventModuleOptionsIoCAnchor } from "./IntegrationEventModuleOptions";
+import {
+  EventBus_Type,
+  IntegrationEventModuleOptions,
+  IntegrationEventModuleOptionsIoCAnchor,
+} from "./IntegrationEventModuleOptions";
 import { IntegrationEventSubscriptionManager } from "./IntegrationEventSubscriptionManager";
 import { AliyunBus } from "./Implementation/Aliyun-RocketMQ/AliyunBus";
 
@@ -20,14 +24,18 @@ import { AliyunBus } from "./Implementation/Aliyun-RocketMQ/AliyunBus";
 export class IntegrationEventModule {
   static forRoot(options: IntegrationEventModuleOptions): DynamicModule {
     let implementationConstructor: ConstructorType<IntegrationEventBus>;
+    console.log(options.type);
     switch (options.type) {
-      case "AWS-SNS-SQS":
+      case EventBus_Type.AWS_SNS_SQS:
+        console.log(1);
         implementationConstructor = AWSBus;
         break;
-      case "InMemory":
+      case EventBus_Type.InMemory:
+        console.log(2);
         implementationConstructor = InMemoryBus;
         break;
-      case "Aliyun-RocketMQ":
+      case EventBus_Type.Aliyun_RocketMQ:
+        console.log(3);
         implementationConstructor = AliyunBus;
         break;
       default:

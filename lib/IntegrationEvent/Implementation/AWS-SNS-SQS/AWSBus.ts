@@ -8,11 +8,11 @@ import { EventBus_Usage, IntegrationEventModuleOptionsIoCAnchor } from "../../In
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { SNSHelper } from "./SNSHelper";
 import { SQSHelper } from "./SQSHelper";
-import { RedisHelper } from "./RedisHelper";
+import { RedisHelper } from "../../../Helper/RedisHelper";
 import { getConstructorName } from "../../../Helper/getConstructorName";
 
 export interface AWSIntegrationEventBusOptions {
-  usage?: EventBus_Usage;
+  usage: EventBus_Usage;
   SNS: {
     arn: string;
     region: string;
@@ -24,6 +24,7 @@ export interface AWSIntegrationEventBusOptions {
     region: string;
     accessKeyId: string;
     secretAccessKey: string;
+    batchSize?: number;
   };
   Redis?: {
     url: string;
@@ -62,6 +63,14 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     @Inject(IntegrationEventModuleOptionsIoCAnchor) options: AWSIntegrationEventBusOptions,
     private readonly subscriptionManager: IntegrationEventSubscriptionManager
   ) {
+    this.RedisUrl = options.Redis?.url;
+    if (this.RedisUrl) {
+      this.RedisClient = createNodeRedisClient(this.RedisUrl);
+      this.RedisClient.nodeRedis.on("error", (error) => {
+        console.log(error);
+      });
+    }
+
     let enableConsumer = true;
     if (options.usage === EventBus_Usage.ProducerOnly) {
       enableConsumer = false;
@@ -83,20 +92,13 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
     this.SQSUrl = options.SQS.url;
     this.SQSClient = new AWS.SQS();
 
-    this.RedisUrl = options.Redis?.url;
-    if (this.RedisUrl) {
-      this.RedisClient = createNodeRedisClient(this.RedisUrl);
-      this.RedisClient.nodeRedis.on("error", (error) => {
-        console.log(error);
-      });
-    }
-
     if (enableConsumer) {
       this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
         SQSUrl: this.SQSUrl,
         SQSClient: this.SQSClient,
         subscriptionManager: this.subscriptionManager,
         RedisClient: this.RedisClient,
+        batchSize: options.SQS.batchSize,
       });
     }
   }
