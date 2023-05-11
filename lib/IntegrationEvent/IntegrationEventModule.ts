@@ -7,9 +7,13 @@ import {
   EventBus_Type,
   IntegrationEventModuleOptions,
   IntegrationEventModuleOptionsIoCAnchor,
+  OptionsForAliyun,
+  OptionsForAWS,
 } from "./IntegrationEventModuleOptions";
 import { IntegrationEventSubscriptionManager } from "./IntegrationEventSubscriptionManager";
 import { AliyunBus } from "./Implementation/Aliyun-RocketMQ/AliyunBus";
+import { getConnectionToken } from "@nestjs/mongoose";
+import { Connection } from "mongoose";
 
 /**
  * Note that the properties returned by the dynamic module extend (rather than override) the base module metadata defined in the @Module() decorator.
@@ -52,6 +56,64 @@ export class IntegrationEventModule {
       providers: [
         {
           provide: IntegrationEventModuleOptionsIoCAnchor,
+          useValue: options,
+        },
+        integrationEventBusProvider,
+      ],
+      exports: [integrationEventBusProvider],
+    };
+  }
+
+  static forRootAsync(options: IntegrationEventModuleOptions, enableMongoDbDeduplication?: boolean): DynamicModule {
+    let implementationConstructor: ConstructorType<IntegrationEventBus>;
+    let deduplicationMode = "None";
+    if ([EventBus_Type.AWS_SNS_SQS, EventBus_Type.Aliyun_RocketMQ].includes(options.type)) {
+      if ((options as OptionsForAWS | OptionsForAliyun).Redis) {
+        deduplicationMode = "Redis";
+      } else if (enableMongoDbDeduplication) {
+        deduplicationMode = "MongoDB";
+      }
+    }
+    console.log("Event bus type:", options.type, "Deduplication mode:", deduplicationMode);
+    switch (options.type) {
+      case EventBus_Type.AWS_SNS_SQS:
+        implementationConstructor = AWSBus;
+        break;
+      case EventBus_Type.InMemory:
+        implementationConstructor = InMemoryBus;
+        break;
+      case EventBus_Type.Aliyun_RocketMQ:
+        implementationConstructor = AliyunBus;
+        break;
+      default:
+        throw new Error(`Got invalid integration event bus type.`);
+    }
+
+    const integrationEventBusProvider: Provider = {
+      provide: IntegrationEventBusIoCAnchor,
+      useClass: implementationConstructor,
+    };
+
+    return {
+      module: IntegrationEventModule,
+      providers: [
+        {
+          provide: IntegrationEventModuleOptionsIoCAnchor,
+          useFactory: async (connection: Connection): Promise<IntegrationEventModuleOptions> => {
+            if (
+              enableMongoDbDeduplication &&
+              [EventBus_Type.AWS_SNS_SQS, EventBus_Type.Aliyun_RocketMQ].includes(options.type)
+            ) {
+              if (!connection) {
+                throw new Error("MongoDB connection is not available for event but deduplication.");
+              }
+              (options as OptionsForAWS | OptionsForAliyun).MongoDB = {
+                connection,
+              };
+            }
+            return options;
+          },
+          inject: [getConnectionToken()],
           useValue: options,
         },
         integrationEventBusProvider,

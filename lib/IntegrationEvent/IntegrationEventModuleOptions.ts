@@ -12,15 +12,15 @@ export enum EventBus_Usage {
   All = "All",
 }
 
-interface OptionsForAWS extends AWSIntegrationEventBusOptions {
+export interface OptionsForAWS extends AWSIntegrationEventBusOptions {
   type: EventBus_Type.AWS_SNS_SQS;
 }
 
-interface OptionsForInMemory {
+export interface OptionsForInMemory {
   type: EventBus_Type.InMemory;
 }
 
-interface OptionsForAliyun extends AliyunIntegrationEventBusOptions {
+export interface OptionsForAliyun extends AliyunIntegrationEventBusOptions {
   type: EventBus_Type.Aliyun_RocketMQ;
 }
 

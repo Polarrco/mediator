@@ -1,6 +1,6 @@
 {
   "name": "@polarrco/mediator",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "private": false,
   "main": "index.js",
   "files": [
@@ -70,6 +70,7 @@
   "peerDependencies": {
     "@nestjs/common": "^8.0.6",
     "@nestjs/core": "^8.0.6",
+    "@nestjs/mongoose": "^9.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.3.0",
     "aws-sdk": "^2.974.0",
