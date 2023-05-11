@@ -9,6 +9,7 @@ import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubsc
 import { SNSHelper } from "./SNSHelper";
 import { SQSHelper } from "./SQSHelper";
 import { RedisHelper } from "../../../Helper/RedisHelper";
+import { Connection } from "mongoose";
 import { getConstructorName } from "../../../Helper/getConstructorName";
 
 export interface AWSIntegrationEventBusOptions {
@@ -28,6 +29,9 @@ export interface AWSIntegrationEventBusOptions {
   };
   Redis?: {
     url: string;
+  };
+  MongoDB?: {
+    connection: Connection;
   };
 }
 
@@ -71,6 +75,10 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
       });
     }
 
+    if (!this.RedisClient) {
+      this.MongoDBConnection = options.MongoDB?.connection;
+    }
+
     let enableConsumer = true;
     if (options.usage === EventBus_Usage.ProducerOnly) {
       enableConsumer = false;
@@ -98,6 +106,7 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
         SQSClient: this.SQSClient,
         subscriptionManager: this.subscriptionManager,
         RedisClient: this.RedisClient,
+        MongoDBConnection: this.MongoDBConnection,
         batchSize: options.SQS.batchSize,
       });
     }
@@ -112,6 +121,7 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
 
   private readonly RedisUrl?: string;
   private readonly RedisClient?: WrappedNodeRedisClient;
+  private readonly MongoDBConnection?: Connection;
 
   private dispose(): Promise<void> {
     return new Promise<void>((resolve) => {
