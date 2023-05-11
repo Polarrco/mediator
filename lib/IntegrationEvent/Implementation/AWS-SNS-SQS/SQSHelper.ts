@@ -5,6 +5,7 @@ import { WrappedNodeRedisClient } from "handy-redis";
 import { jsonDateReviver } from "../../../Helper/jsonDateReviver";
 import { handleEvent } from "../../../Helper/handleEvent";
 import { getEvent } from "../../../Helper/getEvent";
+import { Connection } from "mongoose";
 
 interface SQSMessage {
   EventName: string; // Set by MessageAttributes
@@ -40,6 +41,7 @@ export class SQSHelper {
     SQSUrl: string;
     subscriptionManager: IntegrationEventSubscriptionManager;
     RedisClient?: WrappedNodeRedisClient;
+    MongoDBConnection?: Connection;
     batchSize?: number;
     visibilityTimeout?: number;
   }): Consumer {
@@ -76,6 +78,7 @@ export class SQSHelper {
                 event,
                 subscription,
                 RedisClient: options.RedisClient,
+                MongoDBConnection: options.MongoDBConnection,
               });
             }
           } catch (error) {

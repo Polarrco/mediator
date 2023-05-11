@@ -6,6 +6,7 @@ import { getEvent } from "../../../Helper/getEvent";
 import { handleEvent } from "../../../Helper/handleEvent";
 import { undefinedEventName } from "../../../Helper/undefinedEventName";
 import { WrappedNodeRedisClient } from "handy-redis";
+import { Connection } from "mongoose";
 
 interface RocketMQMessage {
   MessageId: string;
@@ -117,6 +118,7 @@ export class RocketMQHelper {
     pollingDelayInSeconds: number;
     subscriptionManager: IntegrationEventSubscriptionManager;
     RedisClient?: WrappedNodeRedisClient;
+    MongoDBConnection?: Connection;
   }): Promise<void> {
     if (this.consumer) {
       this.stopConsuming = false;
@@ -162,6 +164,7 @@ export class RocketMQHelper {
                         event,
                         subscription,
                         RedisClient: options.RedisClient,
+                        MongoDBConnection: options.MongoDBConnection,
                       });
                     }
                   } catch (error) {

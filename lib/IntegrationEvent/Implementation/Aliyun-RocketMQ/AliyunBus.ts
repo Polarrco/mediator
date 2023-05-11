@@ -7,6 +7,7 @@ import { RocketMQHelper } from "./RocketMQHelper";
 import { getConstructorName } from "../../../Helper/getConstructorName";
 import { RedisHelper } from "../../../Helper/RedisHelper";
 import { createNodeRedisClient, WrappedNodeRedisClient } from "handy-redis";
+import { Connection } from "mongoose";
 
 export interface AliyunIntegrationEventBusOptions {
   usage: EventBus_Usage;
@@ -22,6 +23,9 @@ export interface AliyunIntegrationEventBusOptions {
   };
   Redis?: {
     url: string;
+  };
+  MongoDB?: {
+    connection: Connection;
   };
 }
 
@@ -58,6 +62,10 @@ export class AliyunBus implements IntegrationEventBus, OnModuleDestroy {
       });
     }
 
+    if (!this.RedisClient) {
+      this.MongoDBConnection = options.MongoDB?.connection;
+    }
+
     let enableConsumer = true;
     if (options.usage === EventBus_Usage.ProducerOnly) {
       enableConsumer = false;
@@ -73,6 +81,7 @@ export class AliyunBus implements IntegrationEventBus, OnModuleDestroy {
         pollingDelayInSeconds: options.rocketMQ.pollingDelayInSeconds,
         subscriptionManager: this.subscriptionManager,
         RedisClient: this.RedisClient,
+        MongoDBConnection: this.MongoDBConnection,
       }).then(() => {
         console.log("Aliyun RocketMQ consumer started");
       });
@@ -81,6 +90,7 @@ export class AliyunBus implements IntegrationEventBus, OnModuleDestroy {
 
   private readonly RedisUrl?: string;
   private readonly RedisClient?: WrappedNodeRedisClient;
+  private readonly MongoDBConnection?: Connection;
   private readonly RocketMQHelper: RocketMQHelper;
 
   private dispose(): Promise<void> {
