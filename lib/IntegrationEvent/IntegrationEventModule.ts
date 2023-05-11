@@ -114,7 +114,6 @@ export class IntegrationEventModule {
             return options;
           },
           inject: [getConnectionToken()],
-          useValue: options,
         },
         integrationEventBusProvider,
       ],
