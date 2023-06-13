@@ -179,7 +179,7 @@ export class RocketMQHelper {
             });
           }
         } catch (error: any) {
-          if (error.Code.indexOf("MessageNotExist") > -1) {
+          if (error && error.Code && error.Code.indexOf("MessageNotExist") > -1) {
             // Continue the next poll
           } else {
             console.log("Unexpected error while polling messages", error);
