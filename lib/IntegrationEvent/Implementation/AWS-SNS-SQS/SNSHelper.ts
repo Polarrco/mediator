@@ -1,7 +1,7 @@
-import { SNS } from "aws-sdk";
 import { getConstructorName } from "../../../Helper/getConstructorName";
 import { IntegrationEvent } from "../../IntegrationEvent";
 import { undefinedEventName } from "../../../Helper/undefinedEventName";
+import { PublishCommand, PublishCommandInput, PublishCommandOutput, SNSClient } from "@aws-sdk/client-sns";
 
 /**
  * The naming convention for SNS topic is Service-[ServiceName].
@@ -13,9 +13,9 @@ export class SNSHelper {
   public static async publishEvent(options: {
     event: IntegrationEvent;
     SNSArn: string;
-    SNSClient: SNS;
-  }): Promise<Record<string, any>> {
-    const params = {
+    SNSClient: SNSClient;
+  }): Promise<PublishCommandOutput> {
+    const params: PublishCommandInput = {
       Message: JSON.stringify(options.event),
       // We add in a message attribute to filter on.
       MessageAttributes: {
@@ -27,6 +27,6 @@ export class SNSHelper {
       TopicArn: options.SNSArn,
     };
 
-    return await options.SNSClient.publish(params).promise();
+    return options.SNSClient.send(new PublishCommand(params));
   }
 }

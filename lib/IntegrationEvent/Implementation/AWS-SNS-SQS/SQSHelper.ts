@@ -1,4 +1,3 @@
-import { SQS } from "aws-sdk";
 import { Consumer } from "sqs-consumer";
 import { IntegrationEventSubscriptionManager } from "../../IntegrationEventSubscriptionManager";
 import { WrappedNodeRedisClient } from "handy-redis";
@@ -6,6 +5,7 @@ import { jsonDateReviver } from "../../../Helper/jsonDateReviver";
 import { handleEvent } from "../../../Helper/handleEvent";
 import { getEvent } from "../../../Helper/getEvent";
 import { Connection } from "mongoose";
+import { SQSClient } from "@aws-sdk/client-sqs";
 
 interface SQSMessage {
   EventName: string; // Set by MessageAttributes
@@ -37,7 +37,7 @@ interface SQSMessage {
  */
 export class SQSHelper {
   public static bundleQueueWithSubscriptions(options: {
-    SQSClient: SQS;
+    SQSClient: SQSClient;
     SQSUrl: string;
     subscriptionManager: IntegrationEventSubscriptionManager;
     RedisClient?: WrappedNodeRedisClient;

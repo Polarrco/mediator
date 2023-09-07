@@ -1,5 +1,4 @@
 import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
-import AWS, { SNS, SQS } from "aws-sdk";
 import { Consumer } from "sqs-consumer";
 import { createNodeRedisClient, WrappedNodeRedisClient } from "handy-redis";
 import { IntegrationEvent } from "../../IntegrationEvent";
@@ -11,6 +10,8 @@ import { SQSHelper } from "./SQSHelper";
 import { RedisHelper } from "../../../Helper/RedisHelper";
 import { Connection } from "mongoose";
 import { getConstructorName } from "../../../Helper/getConstructorName";
+import { SNSClient } from "@aws-sdk/client-sns";
+import { SQSClient } from "@aws-sdk/client-sqs";
 
 export interface AWSIntegrationEventBusOptions {
   usage: EventBus_Usage;
@@ -84,21 +85,23 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
       enableConsumer = false;
     }
 
-    AWS.config.update({
-      region: options.SNS.region,
-      accessKeyId: options.SNS.accessKeyId,
-      secretAccessKey: options.SNS.secretAccessKey,
-    });
     this.SNSArn = options.SNS.arn;
-    this.SNSClient = new AWS.SNS();
-
-    AWS.config.update({
-      region: options.SQS.region,
-      accessKeyId: options.SQS.accessKeyId,
-      secretAccessKey: options.SQS.secretAccessKey,
+    this.SNSClient = new SNSClient({
+      region: options.SNS.region,
+      credentials: {
+        accessKeyId: options.SNS.accessKeyId,
+        secretAccessKey: options.SNS.secretAccessKey,
+      },
     });
+
     this.SQSUrl = options.SQS.url;
-    this.SQSClient = new AWS.SQS();
+    this.SQSClient = new SQSClient({
+      region: options.SQS.region,
+      credentials: {
+        accessKeyId: options.SQS.accessKeyId,
+        secretAccessKey: options.SQS.secretAccessKey,
+      },
+    });
 
     if (enableConsumer) {
       this.SQSConsumer = SQSHelper.bundleQueueWithSubscriptions({
@@ -113,10 +116,10 @@ export class AWSBus implements IntegrationEventBus, OnModuleDestroy {
   }
 
   private readonly SNSArn: string;
-  private readonly SNSClient: SNS;
+  private readonly SNSClient: SNSClient;
 
   private readonly SQSUrl: string;
-  private readonly SQSClient: SQS;
+  private readonly SQSClient: SQSClient;
   private readonly SQSConsumer?: Consumer;
 
   private readonly RedisUrl?: string;
