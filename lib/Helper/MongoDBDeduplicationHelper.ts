@@ -4,6 +4,9 @@ const deduplicationCollectionName = "event_bus_processing_events";
 
 export async function canStartProcessingEvent(connection: Connection, eventId: string): Promise<boolean> {
   try {
+    if (!connection.db) {
+      throw new Error("MongoDB connection is not established");
+    }
     await connection.db.collection(deduplicationCollectionName).insertOne({
       eventId,
       processingStartedAt: new Date(),

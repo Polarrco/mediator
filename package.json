@@ -1,6 +1,6 @@
 {
   "name": "@polarrco/mediator",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": false,
   "main": "index.js",
   "files": [
@@ -70,10 +70,10 @@
   "peerDependencies": {
     "@nestjs/common": "^10.0.5",
     "@nestjs/core": "^10.0.5",
-    "@nestjs/mongoose": "^10.0.0",
+    "@nestjs/mongoose": "^10.1.0",
     "@polarrco/ruid": "github:Polarrco/ruid#1.4.1",
     "date-fns": "^2.23.0",
-    "mongoose": "^7.3.4",
+    "mongoose": "^8.12.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.3.0"
   },
